@@ -1,0 +1,34 @@
+[package]
+edition = "2018"
+name = "histdb"
+version = "0.1.0"
+
+[profile.release]
+opt-level = "z"
+lto = true
+overflow-checks = true
+
+[dependencies]
+anyhow = {version = "*", features = ["backtrace"]}
+bincode = "*"
+chrono = "*"
+chronoutil = "*"
+chrono-english = "*"
+ctty = "*"
+daemonize = "*"
+futures-util = "*"
+gethostname = "*"
+lazy_static = "*"
+libc = "*"
+nix = "*"
+rusqlite = "*"
+serde = {version = "*", features = ["derive"]}
+structopt = "*"
+stybulate = "*"
+sysinfo = "*"
+tarpc = {version = "*", features = ["tcp", "serde-transport-bincode", "serde-transport"]}
+thiserror = "*"
+tokio = {version = "*", features = ["full", "tracing"]}
+tracing = "*"
+tracing-appender = "*"
+tracing-subscriber = {version = "*", features=["env-filter"]}

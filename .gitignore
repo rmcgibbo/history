@@ -1,0 +1,6 @@
+.direnv/
+target/
+histdb.db
+histdb.db-shm
+histdb.db-wal
+result
