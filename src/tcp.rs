@@ -155,23 +155,23 @@ impl HistdbQueryService for HistdbQueryServerImpl {
             Some(x) => ("history.end_time <= ?", Some(x.to_sql()?)),
             None => ("1", None),
         };
-        let query = format!(
-            "SELECT end_time, session, argv, dir, host
-    FROM history
-    JOIN commands on history.command_id = commands.id
-    JOIN places on history.place_id = places.id
-    WHERE {hostwhere}
-      AND {commandwhere}
-      AND {indirwhere}
-      AND {atdirwhere}
-      AND {sessionwhere}
-      AND {statuswhere}
-      AND {sincewhere}
-      AND {untilwhere}
-    ORDER BY history.id DESC
-    LIMIT {limit}
-    "
-        );
+        let query = format!("
+            SELECT end_time, session, argv, dir, host, max(end_time) as max_time
+            FROM commands
+            JOIN history on history.command_id = commands.id
+            JOIN places on history.place_id = places.id
+            WHERE {hostwhere}
+              AND {commandwhere}
+              AND {indirwhere}
+              AND {atdirwhere}
+              AND {sessionwhere}
+              AND {statuswhere}
+              AND {sincewhere}
+              AND {untilwhere}
+            GROUP BY history.command_id, history.place_id
+            ORDER BY max_time DESC
+            LIMIT {limit}
+        ");
         let paramv = vec![
             hostwhereparams,
             commandwhereparams,
