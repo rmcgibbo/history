@@ -107,7 +107,7 @@ alias history=@HISTDB_EXE@
             .replace("@HISTDB_ADDR@", &server_addr)
             .replace(
                 "@HISTDB_HOSTNAME@",
-                &gethostname::gethostname().to_string_lossy()
+                &*crate::MYHOSTNAME,
             )
             .replace("@HISTDB_PORT@", &format!("{}", crate::HISTDB_PORT))
     );

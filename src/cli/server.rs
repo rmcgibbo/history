@@ -61,7 +61,7 @@ fn server_main_impl(options: ServerOptions, daemonized: bool) -> Result<()> {
     rt.block_on(async move {
         tracing::info!(
             "Booting histdb server on hostname={:} pid={} db={:}",
-            gethostname::gethostname().to_string_lossy(),
+            *crate::MYHOSTNAME,
             std::process::id(),
             options.histdb,
         );

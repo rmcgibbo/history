@@ -32,6 +32,10 @@ pub fn parse_time(s: &str) -> Result<i64> {
     }
 }
 
+pub fn getshorthostname() -> String {
+    gethostname::gethostname().to_string_lossy().split('.').next().unwrap().to_string()
+}
+
 pub fn getsession() -> Result<i32> {
     ctty::get_path_for_dev(
         ctty::get_ctty_dev().context("Unable to get this processes controlling tty")?,

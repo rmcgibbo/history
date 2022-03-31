@@ -107,7 +107,7 @@ pub async fn query_client_main() -> Result<()> {
         // options.host == Some(None) => all hosts
         // options.host == Some(Some(s)) ==> restrict query to host s
         host: match options.host {
-            None => Some(gethostname::gethostname().to_string_lossy().to_string()),
+            None => Some(crate::MYHOSTNAME.clone()),
             Some(None) => None,
             Some(Some(s)) => Some(s)
         },
