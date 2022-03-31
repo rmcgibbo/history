@@ -33,7 +33,12 @@ pub fn parse_time(s: &str) -> Result<i64> {
 }
 
 pub fn getshorthostname() -> String {
-    gethostname::gethostname().to_string_lossy().split('.').next().unwrap().to_string()
+    gethostname::gethostname()
+        .to_string_lossy()
+        .split('.')
+        .next()
+        .unwrap()
+        .to_string()
 }
 
 pub fn getsession() -> Result<i32> {

@@ -23,7 +23,7 @@ pub struct QueryClientOptions {
     #[structopt(value_name = "TIME", short = "-s", long)]
     since: Option<String>,
 
-    // Show only commands before date.
+    /// Show only commands before date.
     #[structopt(value_name = "TIME", short = "-u", long)]
     until: Option<String>,
 
@@ -101,6 +101,8 @@ pub async fn query_client_main() -> Result<()> {
         }
     };
     let display_host_column = options.host == Some(None);
+    let display_tty_column = options.session.is_none();
+    let display_dir_column = options.at.is_none();
 
     let query = crate::tcp::Query {
         // options.host == None => restrict query to this host
@@ -109,7 +111,7 @@ pub async fn query_client_main() -> Result<()> {
         host: match options.host {
             None => Some(crate::MYHOSTNAME.clone()),
             Some(None) => None,
-            Some(Some(s)) => Some(s)
+            Some(Some(s)) => Some(s),
         },
         command: options.command,
         exact: options.exact,
@@ -141,13 +143,15 @@ pub async fn query_client_main() -> Result<()> {
             };
             let mut fmtrow = vec![date];
             if display_host_column {
-                fmtrow.push(Cell::from(&row.host))
+                fmtrow.push(Cell::from(&row.host));
             }
-            fmtrow.append(&mut vec![
-                Cell::Int(row.session),
-                Cell::from(&row.dir),
-                Cell::from(&row.argv),
-            ]);
+            if display_tty_column {
+                fmtrow.push(Cell::Int(row.session));
+            }
+            if display_dir_column {
+                fmtrow.push(Cell::from(&row.dir));
+            }
+            fmtrow.push(Cell::from(&row.argv));
             fmtrow
         })
         .collect();
@@ -158,11 +162,18 @@ pub async fn query_client_main() -> Result<()> {
         if options.nh {
             None
         } else {
-            let keys = if display_host_column {
-                vec!["time", "host", "tty", "dir", "cmd"]
-            } else {
-                vec!["time", "tty", "dir", "cmd"]
-            };
+            let mut keys = vec!["time"];
+            if display_host_column {
+                keys.push("host");
+            }
+            if display_tty_column {
+                keys.push("tty");
+            }
+            if display_dir_column {
+                keys.push("dir");
+            }
+            keys.push("cmd");
+
             Some(Headers::from(keys))
         },
     )

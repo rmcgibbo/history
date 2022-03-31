@@ -105,10 +105,7 @@ alias history=@HISTDB_EXE@
         "{}",
         cmd.replace("@HISTDB_EXE@", &current_exe)
             .replace("@HISTDB_ADDR@", &server_addr)
-            .replace(
-                "@HISTDB_HOSTNAME@",
-                &*crate::MYHOSTNAME,
-            )
+            .replace("@HISTDB_HOSTNAME@", &*crate::MYHOSTNAME,)
             .replace("@HISTDB_PORT@", &format!("{}", crate::HISTDB_PORT))
     );
 
