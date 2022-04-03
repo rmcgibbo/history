@@ -42,6 +42,9 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
             Event::Key(KeyEvent {
                 code: KeyCode::Tab,
                 modifiers: KeyModifiers::NONE,
+            }) | Event::Key(KeyEvent {
+                code: KeyCode::Char('e'),
+                modifiers: KeyModifiers::CONTROL,
             }) => {
                 crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
                     .unwrap();
