@@ -1,8 +1,8 @@
 use anyhow::Result;
 use futures_util::StreamExt;
-use rusqlite::params_from_iter;
 use rusqlite::types::ToSqlOutput;
 use rusqlite::ToSql;
+use rusqlite::{named_params, params_from_iter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tarpc::{
@@ -69,6 +69,14 @@ pub struct Query {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct IsearchQuery {
+    pub command: String,
+    pub dir: String,
+    pub limit: u32,
+    pub offset: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct QueryResultRow {
     pub time: i64,
     pub session: i32,
@@ -86,6 +94,7 @@ pub enum SqlType {
 #[tarpc::service]
 pub trait HistdbQueryService {
     async fn query(query: Query) -> core::result::Result<Vec<QueryResultRow>, RpcError>;
+    async fn isearch(query: IsearchQuery) -> core::result::Result<Vec<QueryResultRow>, RpcError>;
 }
 
 #[derive(Clone, Debug)]
@@ -95,6 +104,51 @@ struct HistdbQueryServerImpl {
 
 #[tarpc::server]
 impl HistdbQueryService for HistdbQueryServerImpl {
+    async fn isearch(
+        self,
+        _ctx: context::Context,
+        query: IsearchQuery,
+    ) -> core::result::Result<Vec<QueryResultRow>, RpcError> {
+        let q = r#"
+        SELECT argv
+        FROM history
+        JOIN commands on history.command_id = commands.id
+        JOIN places on history.place_id = places.id
+        WHERE argv LIKE ('%' || :argv || '%') ESCAPE '\'
+        GROUP BY history.command_id, history.place_id
+        ORDER BY
+            max(history.id) DESC,
+            argv LIKE (:argv || '%') DESC,
+            dir LIKE (:dir || '%') DESC
+        LIMIT :limit
+        OFFSET :offset;
+        "#;
+        let like_escape = |s: &str| ToSqlOutput::from(s.replace("%", "\\%").replace("_", "\\_"));
+
+        let con = self.con.lock().await;
+        let params = named_params! {
+            ":argv": like_escape(&query.command),
+            ":dir": like_escape(&query.dir),
+            ":limit": query.limit.to_sql()?,
+            ":offset": query.offset.to_sql()?,
+        };
+
+        let mut stmt = con.prepare(&q)?;
+        let mut rows = stmt.query(params)?;
+        let mut result = Vec::new();
+        while let Some(row) = rows.next()? {
+            result.push(QueryResultRow {
+                argv: row.get(0)?,
+                time: 0,
+                session: 0,
+                dir: "".to_string(),
+                host: "".to_string(),
+            });
+        }
+
+        Ok(result)
+    }
+
     async fn query(
         self,
         _ctx: context::Context,
@@ -155,7 +209,8 @@ impl HistdbQueryService for HistdbQueryServerImpl {
             Some(x) => ("history.end_time <= ?", Some(x.to_sql()?)),
             None => ("1", None),
         };
-        let query = format!("
+        let query = format!(
+            "
             SELECT end_time, session, argv, dir, host, max(end_time) as max_time
             FROM commands
             JOIN history on history.command_id = commands.id
@@ -171,7 +226,8 @@ impl HistdbQueryService for HistdbQueryServerImpl {
             GROUP BY history.command_id, history.place_id
             ORDER BY max_time DESC
             LIMIT {limit}
-        ");
+        "
+        );
         let paramv = vec![
             hostwhereparams,
             commandwhereparams,

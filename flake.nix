@@ -23,6 +23,7 @@
           buildInputs = with pkgs; [
             cargo-udeps  # RUSTC_BOOTSTRAP=1 cargo udeps
             sqlite-interactive
+            rustc
             clippy
             rustfmt
             rust-analyzer

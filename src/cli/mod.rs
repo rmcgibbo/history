@@ -1,5 +1,6 @@
 use anyhow::Result;
 mod eval;
+mod isearch;
 mod query;
 mod server;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -31,5 +32,6 @@ pub fn register_tracing(daemonized: bool) -> Result<Option<WorkerGuard>> {
     Ok(None)
 }
 
+pub use isearch::*;
 pub use query::*;
 pub use server::*;
