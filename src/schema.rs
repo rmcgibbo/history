@@ -27,6 +27,7 @@ pub fn create_schema(con: &Connection) -> Result<()> {
         PRAGMA journal_mode = WAL;
         PRAGMA locking_mode = EXCLUSIVE;
         PRAGMA synchronous = normal;
+        PRAGMA case_sensitive_like = true;
 
         create index if not exists hist_time on history(end_time);
         create index if not exists place_dir on places(dir);

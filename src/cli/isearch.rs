@@ -97,6 +97,10 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
             Event::Key(KeyEvent {
                 code: KeyCode::Char(c),
                 modifiers: KeyModifiers::NONE,
+            })
+            | Event::Key(KeyEvent {
+                code: KeyCode::Char(c),
+                modifiers: KeyModifiers::SHIFT,
             }) => {
                 offset_from_end = 0;
                 query.push(c);
@@ -111,7 +115,9 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
             dir: crate::CWD.to_string(),
             offset: offset_from_end,
         };
+        //eprintln!("{:#?}", q);
         let result = client.isearch(context::current(), q).await??;
+        // println!("query={:#?} result={:#?}", query, result);
         match result.get(0).map(|x| x.argv.clone()) {
             Some(c) => {
                 crossterm::execute!(
