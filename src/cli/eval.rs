@@ -97,29 +97,29 @@ __histdb() {
 unset -f __histdb_interactive
 __histdb_interactive() {
     local output
-    # Run the search, with a fd dance so that we capture the output on FD3 into a variable
-    # Also we echo "X" at the end and then strip it off so that we don't chomp any trailing
-    # newline
-    output="$(__histdb_mode=isearch @HISTDB_EXE@ 3>&1 1>&2 2>&3; echo X)"
-    output="${output%X}"
-    # If there was a trailing newline, then we auto-exec the command as if the user had typed
+    local code
+    IFS=" " read -d '' -r code output < <(__histdb_mode=isearch @HISTDB_EXE@ 3>&1 1>&2 2>&3)
+
+    # If code="n", then we auto-exec the command as if the user had typed
     # enter, which is what the real ctr-r does
-    if [[ "$output" = *$'\n' ]]; then
-        # 1. strip off the trailing newline
-        # 2. render the prompt
-        # 3. run the command
-        # 4. add it to the history buffer with command -s, so up-arrow works
-        # 5. add it to _our_ history buffer by calling PROMPT_COMMAND
-        output="${output%$'\n'}"
+    if [[ "$code" == "n" ]]; then
+        # 1. render the prompt
+        # 2. run the command
+        # 3. add it to the history buffer with command -s, so up-arrow works
+        # 4. add it to _our_ history buffer by calling PROMPT_COMMAND
         printf "%s%s\n" "${PS1@P}" "$output"
+
         eval "$output"
         command history -s "$output"
         eval "$PROMPT_COMMAND"
         [[ "$PS1" == "\n"* ]] && printf "\n"
         READLINE_LINE=""
         READLINE_POINT=0
+    elif [[ "$code" == "a" ]]; then
+        READLINE_LINE=${output}
+        READLINE_POINT=0
     else
-        READLINE_LINE=${output};
+        READLINE_LINE=${output}
         READLINE_POINT=${#output}
     fi
 }

@@ -36,7 +36,16 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
             }) => {
                 crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
                     .unwrap();
-                write!(fd3, "{}\n", &last_match.unwrap_or("".to_string())).unwrap();
+                write!(fd3, "n {}", &last_match.unwrap_or("".to_string())).unwrap();
+                break;
+            }
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('a'),
+                modifiers: KeyModifiers::CONTROL,
+            }) => {
+                crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
+                    .unwrap();
+                write!(fd3, "a {}", &last_match.unwrap_or("".to_string())).unwrap();
                 break;
             }
             Event::Key(KeyEvent {
@@ -48,7 +57,7 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
             }) => {
                 crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
                     .unwrap();
-                write!(fd3, "{}", &last_match.unwrap_or("".to_string())).unwrap();
+                write!(fd3, "_ {}", &last_match.unwrap_or("".to_string())).unwrap();
                 break;
             }
             Event::Key(KeyEvent {
