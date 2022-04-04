@@ -110,7 +110,7 @@ impl HistdbQueryService for HistdbQueryServerImpl {
         query: IsearchQuery,
     ) -> core::result::Result<Vec<QueryResultRow>, RpcError> {
         let q = r#"
-        SELECT argv
+        SELECT argv, dir, host, max(history.id)
         FROM history
         JOIN commands on history.command_id = commands.id
         JOIN places on history.place_id = places.id
@@ -139,10 +139,10 @@ impl HistdbQueryService for HistdbQueryServerImpl {
         while let Some(row) = rows.next()? {
             result.push(QueryResultRow {
                 argv: row.get(0)?,
-                time: 0,
+                time: row.get(3)?,
                 session: 0,
-                dir: "".to_string(),
-                host: "".to_string(),
+                dir: row.get(1)?,
+                host: row.get(2)?,
             });
         }
 

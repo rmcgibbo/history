@@ -191,6 +191,21 @@ pub async fn isearch_main() -> Result<()> {
     .await?;
 
     let client = HistdbQueryServiceClient::new(client::Config::default(), transport).spawn();
+
+    if let Ok(q) = std::env::var("__histdb_query_debug") {
+        let q = crate::tcp::IsearchQuery {
+            command: q,
+            limit: 10,
+            dir: crate::CWD.to_string(),
+            offset: 0,
+        };
+        eprintln!("{:#?}", q);
+        let result = client.isearch(context::current(), q).await??;
+        println!("result={:#?}", result);
+        std::process::exit(1);
+    }
+
+
     enable_raw_mode()?;
     crossterm::execute!(stdout(), crossterm::cursor::Hide)?;
 
