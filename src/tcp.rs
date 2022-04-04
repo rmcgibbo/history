@@ -117,8 +117,8 @@ impl HistdbQueryService for HistdbQueryServerImpl {
         WHERE argv LIKE ('%' || :argv || '%') ESCAPE '\'
         GROUP BY history.command_id, history.place_id
         ORDER BY
-            dir LIKE (:dir || '%') DESC,
-            argv LIKE (:argv || '%') DESC,
+            dir LIKE (:dir || '%') ESCAPE '\' DESC,
+            argv LIKE (:argv || '%') ESCAPE '\' DESC,
             max(history.id) DESC
         LIMIT :limit
         OFFSET :offset;
