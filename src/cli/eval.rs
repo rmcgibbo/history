@@ -130,7 +130,14 @@ if [[ -z "$PROMPT_COMMAND" ]]; then
 elif [[ "$PROMPT_COMMAND" != *"__histdb"* ]]; then
     PROMPT_COMMAND="$PROMPT_COMMAND; __histdb";
 fi
-alias history=@HISTDB_EXE@
+
+history() {
+    if [[ $(command caller) == *"/etc/bashrc" ]]; then
+        command history "$@"
+    else
+        @HISTDB_EXE@ "$@"
+    fi
+}
 "#;
 
     println!(
