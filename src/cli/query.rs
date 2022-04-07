@@ -128,6 +128,7 @@ pub async fn query_client_main() -> Result<()> {
         desc: options.desc,
         limit: options.limit,
     };
+    tracing::debug!("{:#?}", query);
 
     let out: Vec<Vec<Cell>> = client
         .query(context::current(), query)

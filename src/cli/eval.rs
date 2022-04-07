@@ -98,7 +98,7 @@ unset -f __histdb_interactive
 __histdb_interactive() {
     local output
     local code
-    IFS=" " read -d '' -r code output < <(__histdb_mode=isearch @HISTDB_EXE@ 3>&1 1>&2 2>&3)
+    IFS=" " read -d '' -r code output < <(__histdb_mode=isearch __histdb_pwd=$(pwd) @HISTDB_EXE@ 3>&1 1>&2 2>&3)
 
     # If code="n", then we auto-exec the command as if the user had typed
     # enter, which is what the real ctr-r does
@@ -135,7 +135,7 @@ history() {
     if [[ $(command caller) == *"/etc/bashrc" ]]; then
         command history "$@"
     else
-        @HISTDB_EXE@ "$@"
+    __histdb_pwd=$(pwd) @HISTDB_EXE@ "$@"
     fi
 }
 "#;
