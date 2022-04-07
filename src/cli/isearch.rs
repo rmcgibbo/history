@@ -19,7 +19,9 @@ static FAILED_PROMPT: &str = "(failed reverse-i-search)";
 
 async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
     let mut stdout = stdout();
+    let mut term_dimensions = crossterm::terminal::size()?;
     let mut fd3 = BufWriter::new(unsafe { File::from_raw_fd(3) });
+    let mut last_n_term_chars_printed = 0;
 
     let mut query = String::new();
     let mut last_match: Option<String> = None;
@@ -34,8 +36,15 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
                 code: KeyCode::Enter,
                 modifiers: KeyModifiers::NONE,
             }) => {
-                crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
-                    .unwrap();
+                crossterm::execute!(
+                    stdout,
+                    crossterm::cursor::MoveToPreviousLine(
+                        last_n_term_chars_printed / (term_dimensions.0 + 1),
+                    ),
+                    Print("\r"),
+                    Clear(terminal::ClearType::FromCursorDown),
+                )
+                .unwrap();
                 write!(fd3, "n {}", &last_match.unwrap_or("".to_string())).unwrap();
                 break;
             }
@@ -43,20 +52,35 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
                 code: KeyCode::Char('a'),
                 modifiers: KeyModifiers::CONTROL,
             }) => {
-                crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
-                    .unwrap();
+                crossterm::execute!(
+                    stdout,
+                    crossterm::cursor::MoveToPreviousLine(
+                        last_n_term_chars_printed / (term_dimensions.0 + 1),
+                    ),
+                    Print("\r"),
+                    Clear(terminal::ClearType::FromCursorDown),
+                )
+                .unwrap();
                 write!(fd3, "a {}", &last_match.unwrap_or("".to_string())).unwrap();
                 break;
             }
             Event::Key(KeyEvent {
                 code: KeyCode::Tab,
                 modifiers: KeyModifiers::NONE,
-            }) | Event::Key(KeyEvent {
+            })
+            | Event::Key(KeyEvent {
                 code: KeyCode::Char('e'),
                 modifiers: KeyModifiers::CONTROL,
             }) => {
-                crossterm::execute!(stdout, Clear(terminal::ClearType::CurrentLine), Print("\r"))
-                    .unwrap();
+                crossterm::execute!(
+                    stdout,
+                    crossterm::cursor::MoveToPreviousLine(
+                        last_n_term_chars_printed / (term_dimensions.0 + 1),
+                    ),
+                    Print("\r"),
+                    Clear(terminal::ClearType::FromCursorDown),
+                )
+                .unwrap();
                 write!(fd3, "_ {}", &last_match.unwrap_or("".to_string())).unwrap();
                 break;
             }
@@ -117,6 +141,10 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
                 offset_from_end = 0;
                 query.push(c);
             }
+            Event::Resize(x, y) => {
+                term_dimensions = (x, y);
+            }
+
             _ => {
                 // println!("{:#?}", x);
             }
@@ -129,26 +157,32 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
         };
         //eprintln!("{:#?}", q);
         let result = client.isearch(context::current(), q).await??;
-        // println!("query={:#?} result={:#?}", query, result);
         match result.get(0).map(|x| x.argv.clone()) {
             Some(c) => {
                 crossterm::execute!(
                     stdout,
-                    Clear(terminal::ClearType::CurrentLine),
+                    crossterm::cursor::MoveToPreviousLine(
+                        last_n_term_chars_printed / (term_dimensions.0 + 1),
+                    ),
                     Print("\r"),
+                    Clear(terminal::ClearType::FromCursorDown),
                     Print(PROMPT),
                     Print("`"),
                     Print(&query),
                     Print("': "),
                     Print(highlight(&c, &query))
                 )?;
-                last_match = Some(c)
+                last_n_term_chars_printed = (PROMPT.len() + query.len() + 4 + c.len()) as u16;
+                last_match = Some(c);
             }
             None => {
                 crossterm::execute!(
                     stdout,
-                    Clear(terminal::ClearType::CurrentLine),
+                    crossterm::cursor::MoveToPreviousLine(
+                        last_n_term_chars_printed / (term_dimensions.0 + 1)
+                    ),
                     Print("\r"),
+                    Clear(terminal::ClearType::FromCursorDown),
                     Print(FAILED_PROMPT),
                     Print("`"),
                     Print(&query),
@@ -160,6 +194,11 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
                             .unwrap_or("".to_string())
                     )
                 )?;
+                last_n_term_chars_printed = (FAILED_PROMPT.len()
+                    + query.len()
+                    + 4
+                    + last_match.as_ref().map(|x| x.len()).unwrap_or(0))
+                    as u16;
             }
         }
     }
@@ -204,7 +243,6 @@ pub async fn isearch_main() -> Result<()> {
         println!("result={:#?}", result);
         std::process::exit(1);
     }
-
 
     enable_raw_mode()?;
     crossterm::execute!(stdout(), crossterm::cursor::Hide)?;
