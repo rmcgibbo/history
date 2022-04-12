@@ -123,7 +123,7 @@ __histdb_interactive() {
         READLINE_POINT=${#output}
     fi
 }
-bind -x '"\C-r": __histdb_interactive'
+[[ ${SHELLOPTS} =~ (vi|emacs) ]] &&  bind -x '"\C-r": __histdb_interactive'
 
 if [[ -z "$PROMPT_COMMAND" ]]; then
     PROMPT_COMMAND="__histdb"
