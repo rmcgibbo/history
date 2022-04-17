@@ -11,12 +11,12 @@ pub fn parse_time(s: &str) -> Result<i64> {
         debug!("Parsed duration '{}' as {:#?}", s, duration);
         // note: making the duration always negative here so '5 min' and '5 min ago' both
         // resolve to a time in the past. in other contexts you care about the future, but
-        // here we're querying history, so no good can come of parsing `histdb -s "5 min"`
+        // here we're querying history, so no good can come of parsing `history -s "5 min"`
         // as looking for commands that finished in the future
         let chronoduration = match duration {
             chrono_english::Interval::Seconds(s) => RelativeDuration::seconds((-s.abs()).into()),
             chrono_english::Interval::Days(d) => RelativeDuration::days((-d.abs()).into()),
-            chrono_english::Interval::Months(m) => RelativeDuration::months((-m.abs()).into()),
+            chrono_english::Interval::Months(m) => RelativeDuration::months(-m.abs()),
         };
         let then = Utc::now() + chronoduration;
         return Ok(then.timestamp());

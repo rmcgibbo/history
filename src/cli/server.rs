@@ -1,7 +1,7 @@
 use std::{process::exit, sync::Arc};
 
 use crate::{
-    monitor::server_monitor_log_forever, schema::create_schema, tcp::HistdbQueryServer,
+    monitor::server_monitor_log_forever, schema::create_schema, tcp::HistoryQueryServer,
     udp::InsertServer,
 };
 use anyhow::Result;
@@ -20,7 +20,7 @@ pub struct ServerOptions {
 
     /// History file (sqlite db)
     #[structopt()]
-    histdb: String,
+    history: String,
 }
 
 pub fn server_main() -> Result<()> {
@@ -30,11 +30,11 @@ pub fn server_main() -> Result<()> {
             let stdout = std::fs::OpenOptions::new()
                 .append(true)
                 .create(true)
-                .open("/tmp/histdb-daemon.log")?;
+                .open("/tmp/history-daemon.log")?;
             let stderr = std::fs::OpenOptions::new()
                 .append(true)
                 .create(true)
-                .open("/tmp/histdb-daemon.log")?;
+                .open("/tmp/history-daemon.log")?;
             let daemonize = daemonize::Daemonize::new()
                 .working_directory("/tmp")
                 .stdout(stdout)
@@ -60,16 +60,16 @@ fn server_main_impl(options: ServerOptions, daemonized: bool) -> Result<()> {
 
     rt.block_on(async move {
         tracing::info!(
-            "Booting histdb server on hostname={:} pid={} db={:}",
+            "Booting history server on hostname={:} pid={} db={:}",
             *crate::MYHOSTNAME,
             std::process::id(),
-            options.histdb,
+            options.history,
         );
-        let con = Connection::open(options.histdb)?;
+        let con = Connection::open(options.history)?;
         create_schema(&con)?;
         let con = Arc::new(Mutex::new(con));
         let udp_server = InsertServer::new(con.clone()).await?;
-        let tcp_server = HistdbQueryServer::new(con.clone());
+        let tcp_server = HistoryQueryServer::new(con.clone());
 
         let mon = tokio::spawn(async { server_monitor_log_forever().await });
         let udp = tokio::spawn(async move { udp_server.run().await });

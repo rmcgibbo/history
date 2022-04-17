@@ -1,4 +1,4 @@
 #!/bin/sh
 
-apk add sqlite-dev
+echo "Pre-build"
 

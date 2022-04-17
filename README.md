@@ -28,7 +28,7 @@ to act as the "server". Your login node / workstation would be a good choice.
 
 Then just add
 ```
-eval "$(/path/to/binary/histdb --eval myworkstation.mycompany.com)"
+eval "$(/path/to/binary/history --eval myworkstation.mycompany.com)"
 ```
 
 to your `.bashrc` file.
@@ -38,7 +38,7 @@ you can add
 
 Then just add
 ```
-eval "$(/path/to/binary/histdb --eval 127.0.0.1)"
+eval "$(/path/to/binary/history --eval 127.0.0.1)"
 ```
 
 to your `.bashrc` file instead.
@@ -49,10 +49,10 @@ to your `.bashrc` file instead.
 
 Inspiration / alternatives
 ==========================
-1. [zsh-histdb](https://github.com/larkery/zsh-histdb): I copied the database schema and a lot of the CLI options from zsh-histdb, which
-   is very nice. I don't use zsh, so that was the first difference. (The other difference is that zsh-histdb
+1. [zsh-history](https://github.com/larkery/zsh-history): I copied the database schema and a lot of the CLI options from zsh-history, which
+   is very nice. I don't use zsh, so that was the first difference. (The other difference is that zsh-history
    doesn't pool history from multiple machines without a shared filesystem, I think.)
-2. [atuin](https://github.com/larkery/zsh-histdb): wow, this looks very fancy, nice job. I'm personally looking for something a bit
+2. [atuin](https://github.com/larkery/zsh-history): wow, this looks very fancy, nice job. I'm personally looking for something a bit
    more minimal with the `ctrl-r` keybindings, but this looks great.
 3. [mcfly](https://github.com/cantino/mcfly): Some cool ideas here, but I was personally not sold on the use of machine learning
    for this application.

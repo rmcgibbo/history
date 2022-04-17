@@ -1,6 +1,6 @@
 use anyhow::Result;
-use histdb::cli::register_tracing;
-use histdb::cli::{isearch_main, query_client_main, server_main};
+use history::cli::register_tracing;
+use history::cli::{isearch_main, query_client_main, server_main};
 
 fn main() -> Result<()> {
     let rt = || {
@@ -10,7 +10,7 @@ fn main() -> Result<()> {
             .expect("Unable to construct tokio runtime")
     };
 
-    match histdb::HISTDB_MODE.as_ref().map(|x| x as &str) {
+    match history::HISTORY_MODE.as_ref().map(|x| x as &str) {
         Ok("server") => server_main(), // tracing is registered later
         Ok("isearch") => Ok(rt().block_on(async { isearch_main().await })?),
         _ => {

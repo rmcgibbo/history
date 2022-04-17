@@ -1,13 +1,15 @@
 use anyhow::{Context, Result};
+use git_version::git_version;
 use chrono::prelude::*;
 use structopt::StructOpt;
 use stybulate::{Cell, Headers, Style, Table};
 use tarpc::{client, context, tokio_serde::formats::Bincode};
 
-use crate::tcp::HistdbQueryServiceClient;
+use crate::tcp::HistoryQueryServiceClient;
 
 /// Search shell command history
 #[derive(StructOpt, Debug)]
+#[structopt(version = git_version!())]
 #[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
 #[structopt(setting = structopt::clap::AppSettings::DeriveDisplayOrder)]
 pub struct QueryClientOptions {
@@ -57,7 +59,7 @@ pub struct QueryClientOptions {
     #[structopt(long = "--no-header")]
     nh: bool,
 
-    /// Generate eval string for bash (use eval "$(histdb --eval <ADDR>)"). Supply server addr,
+    /// Generate eval string for bash (use eval "$(history --eval <ADDR>)"). Supply server addr,
     /// like 127.0.0.1 if you want to run the server locally, or remote addr/ip if you want to
     /// centralize the history.    
     #[structopt(long = "--eval", name = "SERVER_ADDR")]
@@ -74,25 +76,25 @@ pub async fn query_client_main() -> Result<()> {
     if let Some(server_addr) = options.eval {
         let shell = std::env::var("SHELL")
             .context("Unable to read environment variable SHELL")
-            .context("Sorry, histdb only supports the bash shell.")?;
+            .context("Sorry, history only supports the bash shell.")?;
         if !shell.ends_with("bash") {
-            anyhow::bail!("Sorry, histdb only supports the bash shell. I see from $SHELL you're running from {:?}", shell);
+            anyhow::bail!("Sorry, history only supports the bash shell. I see from $SHELL you're running from {:?}", shell);
         }
         return crate::cli::eval::show_bash_eval_string(server_addr).await;
     }
-    let server = crate::HISTDB_SERVER
+    let server = crate::HISTORY_SERVER
         .as_ref()
-        .context("Unable to access environment variable '__histdb_server'")
-        .context("Did you forget to 'eval \"$(histdb --eval <server-name>)\"' in your .bashrc?")?;
+        .context("Unable to access environment variable '__history_server'")
+        .context("Did you forget to 'eval \"$(history --eval <server-name>)\"' in your .bashrc?")?;
 
     let transport = tarpc::serde_transport::tcp::connect(
-        format!("{}:{}", server, crate::HISTDB_PORT),
+        format!("{}:{}", server, crate::HISTORY_PORT),
         Bincode::default,
     )
     .await?;
 
     let now = Utc::now();
-    let client = HistdbQueryServiceClient::new(client::Config::default(), transport).spawn();
+    let client = HistoryQueryServiceClient::new(client::Config::default(), transport).spawn();
     let mysession = crate::util::getsession().context("Unable to get current tty session")?;
     let parse_time = |x: Option<&String>| -> Result<Option<i64>> {
         match x {

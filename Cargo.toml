@@ -1,6 +1,6 @@
 [package]
-edition = "2018"
-name = "histdb"
+edition = "2021"
+name = "history"
 version = "0.1.0"
 
 [profile.release]
@@ -18,18 +18,19 @@ ctty = "*"
 crossterm = "*"
 daemonize = "*"
 futures-util = "*"
+git-version = "*"
 gethostname = "*"
 lazy_static = "*"
 libc = "*"
 nix = "*"
-rusqlite = "*"
+rusqlite = { version = "*", features = ["bundled"] }
 serde = {version = "*", features = ["derive"]}
 structopt = "*"
 stybulate = "*"
-sysinfo = "*"
+sysinfo = {version = "*", default-features = false, features = []}
 tarpc = {version = "*", features = ["tcp", "serde-transport-bincode", "serde-transport"]}
 thiserror = "*"
 tokio = {version = "*", features = ["full", "tracing"]}
 tracing = "*"
 tracing-appender = "*"
-tracing-subscriber = {version = "*", features=["env-filter"]}
+tracing-subscriber = {version = "*", features = ["env-filter"]}

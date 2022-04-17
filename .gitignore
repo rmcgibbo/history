@@ -1,6 +1,6 @@
 .direnv/
 target/
-histdb.db
-histdb.db-shm
-histdb.db-wal
+history.db
+history.db-shm
+history.db-wal
 result

@@ -11,15 +11,15 @@
       let
         pkgs = import nixpkgs { inherit system; };
         naersk-lib = pkgs.callPackage naersk { };
-        histdb = naersk-lib.buildPackage {
+        history = naersk-lib.buildPackage {
           root = ./.;
-          buildInputs = with pkgs; [ sqlite ];
+          buildInputs = with pkgs; [ git ];
         };
       in
       {
-        defaultPackage = histdb;
+        defaultPackage = history;
         devShell = pkgs.mkShell rec {
-          inputsFrom = [ histdb ];
+          inputsFrom = [ history ];
           buildInputs = with pkgs; [
             cargo-udeps  # RUSTC_BOOTSTRAP=1 cargo udeps
             sqlite-interactive

@@ -12,12 +12,12 @@ use std::os::unix::io::FromRawFd;
 use tarpc::tokio_serde::formats::Bincode;
 use tarpc::{client, context};
 
-use crate::tcp::HistdbQueryServiceClient;
+use crate::tcp::HistoryQueryServiceClient;
 
 static PROMPT: &str = "(reverse-i-search)";
 static FAILED_PROMPT: &str = "(failed reverse-i-search)";
 
-async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
+async fn main_loop(client: HistoryQueryServiceClient) -> Result<()> {
     let mut stdout = stdout();
     let mut term_dimensions = crossterm::terminal::size()?;
     let mut fd3 = BufWriter::new(unsafe { File::from_raw_fd(3) });
@@ -190,7 +190,7 @@ async fn main_loop(client: HistdbQueryServiceClient) -> Result<()> {
                     Print(
                         last_match
                             .as_ref()
-                            .map(|x| highlight(&x, &query))
+                            .map(|x| highlight(x, &query))
                             .unwrap_or("".to_string())
                     )
                 )?;
@@ -219,19 +219,19 @@ fn highlight(result: &str, query: &str) -> String {
 }
 
 pub async fn isearch_main() -> Result<()> {
-    let server = crate::HISTDB_SERVER
+    let server = crate::HISTORY_SERVER
         .as_ref()
-        .context("Unable to access environment variable '__histdb_server'")
-        .context("Did you forget to 'eval \"$(histdb --eval <server-name>)\"' in your .bashrc?")?;
+        .context("Unable to access environment variable '__history_server'")
+        .context("Did you forget to 'eval \"$(history --eval <server-name>)\"' in your .bashrc?")?;
     let transport = tarpc::serde_transport::tcp::connect(
-        format!("{}:{}", server, crate::HISTDB_PORT),
+        format!("{}:{}", server, crate::HISTORY_PORT),
         Bincode::default,
     )
     .await?;
 
-    let client = HistdbQueryServiceClient::new(client::Config::default(), transport).spawn();
+    let client = HistoryQueryServiceClient::new(client::Config::default(), transport).spawn();
 
-    if let Ok(q) = std::env::var("__histdb_query_debug") {
+    if let Ok(q) = std::env::var("__history_query_debug") {
         let q = crate::tcp::IsearchQuery {
             command: q,
             limit: 10,

@@ -92,18 +92,18 @@ pub enum SqlType {
 }
 
 #[tarpc::service]
-pub trait HistdbQueryService {
+pub trait HistoryQueryService {
     async fn query(query: Query) -> core::result::Result<Vec<QueryResultRow>, RpcError>;
     async fn isearch(query: IsearchQuery) -> core::result::Result<Vec<QueryResultRow>, RpcError>;
 }
 
 #[derive(Clone, Debug)]
-struct HistdbQueryServerImpl {
+struct HistoryQueryServerImpl {
     con: Arc<Mutex<rusqlite::Connection>>,
 }
 
 #[tarpc::server]
-impl HistdbQueryService for HistdbQueryServerImpl {
+impl HistoryQueryService for HistoryQueryServerImpl {
     async fn isearch(
         self,
         _ctx: context::Context,
@@ -133,7 +133,7 @@ impl HistdbQueryService for HistdbQueryServerImpl {
             ":offset": query.offset.to_sql()?,
         };
 
-        let mut stmt = con.prepare(&q)?;
+        let mut stmt = con.prepare(q)?;
         let mut rows = stmt.query(params)?;
         let mut result = Vec::new();
         while let Some(row) = rows.next()? {
@@ -263,21 +263,21 @@ impl HistdbQueryService for HistdbQueryServerImpl {
         Ok(result)
     }
 }
-pub struct HistdbQueryServer {
+pub struct HistoryQueryServer {
     con: Arc<Mutex<rusqlite::Connection>>,
 }
-impl HistdbQueryServer {
-    pub fn new(con: Arc<Mutex<rusqlite::Connection>>) -> HistdbQueryServer {
-        HistdbQueryServer { con }
+impl HistoryQueryServer {
+    pub fn new(con: Arc<Mutex<rusqlite::Connection>>) -> HistoryQueryServer {
+        HistoryQueryServer { con }
     }
     pub async fn run(self) -> Result<()> {
-        let addr = format!("0.0.0.0:{}", crate::HISTDB_PORT);
+        let addr = format!("0.0.0.0:{}", crate::HISTORY_PORT);
         let mut incoming = tarpc::serde_transport::tcp::listen(&addr, Bincode::default).await?;
         loop {
             if let Some(x) = incoming.next().await {
                 match x {
                     Ok(transport) => {
-                        let server = HistdbQueryServerImpl {
+                        let server = HistoryQueryServerImpl {
                             con: self.con.clone(),
                         };
                         let fut = BaseChannel::with_defaults(transport).execute(server.serve());

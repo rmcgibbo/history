@@ -29,7 +29,7 @@ pub struct InsertServer {
 
 impl InsertServer {
     pub async fn new(con: Arc<Mutex<rusqlite::Connection>>) -> Result<InsertServer> {
-        let addr = format!("0.0.0.0:{}", crate::HISTDB_PORT);
+        let addr = format!("0.0.0.0:{}", crate::HISTORY_PORT);
         info!("Lisening on {}", addr);
         let socket = UdpSocket::bind(&addr).await?;
         Ok(InsertServer {
