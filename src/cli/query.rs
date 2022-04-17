@@ -9,7 +9,7 @@ use crate::tcp::HistoryQueryServiceClient;
 
 /// Search shell command history
 #[derive(StructOpt, Debug)]
-#[structopt(version = git_version!())]
+#[structopt(version = git_version!(fallback="0.1"))]
 #[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
 #[structopt(setting = structopt::clap::AppSettings::DeriveDisplayOrder)]
 pub struct QueryClientOptions {

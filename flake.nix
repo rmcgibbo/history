@@ -13,7 +13,7 @@
         naersk-lib = pkgs.callPackage naersk { };
         history = naersk-lib.buildPackage {
           root = ./.;
-          buildInputs = with pkgs; [ git ];
+          buildInputs = with pkgs; [ ];
         };
       in
       {
