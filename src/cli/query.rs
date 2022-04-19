@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use git_version::git_version;
 use chrono::prelude::*;
+use git_version::git_version;
 use structopt::StructOpt;
 use stybulate::{Cell, Headers, Style, Table};
 use tarpc::{client, context, tokio_serde::formats::Bincode};
@@ -61,7 +61,7 @@ pub struct QueryClientOptions {
 
     /// Generate eval string for bash (use eval "$(history --eval <ADDR>)"). Supply server addr,
     /// like 127.0.0.1 if you want to run the server locally, or remote addr/ip if you want to
-    /// centralize the history.    
+    /// centralize the history.
     #[structopt(long = "--eval", name = "SERVER_ADDR")]
     eval: Option<String>,
 
@@ -146,15 +146,16 @@ pub async fn query_client_main() -> Result<()> {
             };
             let mut fmtrow = vec![date];
             if display_host_column {
-                fmtrow.push(Cell::from(&row.host));
+                fmtrow.push(Cell::from(&remove_zero_width_graphemes(&row.host)));
             }
             if display_tty_column {
                 fmtrow.push(Cell::Int(row.session));
             }
             if display_dir_column {
-                fmtrow.push(Cell::from(&row.dir));
+                fmtrow.push(Cell::from(&remove_zero_width_graphemes(&row.dir)));
             }
-            fmtrow.push(Cell::from(&row.argv));
+
+            fmtrow.push(Cell::from(&remove_zero_width_graphemes(&row.argv)));
             fmtrow
         })
         .collect();
@@ -183,4 +184,17 @@ pub async fn query_client_main() -> Result<()> {
     .tabulate();
     println!("{}", result);
     Ok(())
+}
+
+// Fix for https://github.com/guigui64/stybulate/issues/18
+fn remove_zero_width_graphemes(s: &str) -> String {
+    use unicode_segmentation::UnicodeSegmentation;
+    use unicode_width::UnicodeWidthStr;
+
+    UnicodeSegmentation::graphemes(s, true)
+        .map(|x| match UnicodeWidthStr::width(x) {
+            0 => "",
+            _ => x,
+        })
+        .collect()
 }
