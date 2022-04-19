@@ -43,9 +43,7 @@ eval "$(/path/to/binary/history --eval 127.0.0.1)"
 
 to your `.bashrc` file instead.
 
-
-![image](https://user-images.githubusercontent.com/641278/163729109-5d9542a1-d2ab-4a8e-8111-81b377172ebd.png)
-
+![image](https://user-images.githubusercontent.com/641278/163732682-30b8a7bc-c9fb-4b84-b9aa-f062329c74bb.png)
 
 Inspiration / alternatives
 ==========================
