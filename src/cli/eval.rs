@@ -109,6 +109,7 @@ __history_interactive() {
         # 4. add it to _our_ history buffer by calling PROMPT_COMMAND
         printf "%s%s\n" "${PS1@P}" "$output"
 
+        stty sane;
         eval "$output"
         command history -s "$output"
         eval "$PROMPT_COMMAND"
