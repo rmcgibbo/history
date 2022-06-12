@@ -1,5 +1,6 @@
 use std::env::VarError;
 
+mod _vendor_ctty;
 pub mod cli;
 mod monitor;
 mod schema;

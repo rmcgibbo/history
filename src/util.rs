@@ -42,8 +42,9 @@ pub fn getshorthostname() -> String {
 }
 
 pub fn getsession() -> Result<i32> {
-    ctty::get_path_for_dev(
-        ctty::get_ctty_dev().context("Unable to get this processes controlling tty")?,
+    crate::_vendor_ctty::get_path_for_dev(
+        crate::_vendor_ctty::get_ctty_dev()
+            .context("Unable to get this processes controlling tty")?,
     )
     .context("Unable to get path to controlling tty")?
     .replace("/dev/pts/", "")
