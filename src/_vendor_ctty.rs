@@ -107,7 +107,7 @@ pub fn get_path_for_dev(dev: u64) -> Result<String, CttyError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::_vendor_ctty::{get_path_for_dev, get_ctty_dev};
+    use crate::_vendor_ctty::{get_ctty_dev, get_path_for_dev};
     use std::error::Error;
 
     #[test]

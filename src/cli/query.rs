@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::prelude::*;
-use git_version::git_version;
 use clap::{AppSettings, Parser};
+use git_version::git_version;
 use stybulate::{Cell, Headers, Style, Table};
 use tarpc::{client, context, tokio_serde::formats::Bincode};
 

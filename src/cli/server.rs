@@ -5,8 +5,8 @@ use crate::{
     udp::InsertServer,
 };
 use anyhow::Result;
-use rusqlite::Connection;
 use clap::Parser;
+use rusqlite::Connection;
 use tokio::sync::Mutex;
 
 use super::register_tracing;
