@@ -1,77 +1,76 @@
 use anyhow::{Context, Result};
 use chrono::prelude::*;
 use git_version::git_version;
-use structopt::StructOpt;
+use clap::{AppSettings, Parser};
 use stybulate::{Cell, Headers, Style, Table};
 use tarpc::{client, context, tokio_serde::formats::Bincode};
 
 use crate::tcp::HistoryQueryServiceClient;
 
 /// Search shell command history
-#[derive(StructOpt, Debug)]
-#[structopt(version = git_version!(fallback="0.1"))]
-#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
-#[structopt(setting = structopt::clap::AppSettings::DeriveDisplayOrder)]
+#[derive(Parser, Debug)]
+#[clap(author, version = git_version!(fallback="0.1"), about, long_about = None)]
+#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 pub struct QueryClientOptions {
     /// Show only N rows
-    #[structopt(value_name = "N", short = "-n", long = "--limit", default_value = "25")]
+    #[clap(value_name = "N", short = 'n', long = "--limit", default_value = "25")]
     limit: i32,
 
     /// Show only entries from session T.
-    #[structopt(value_name = "T", short = "-t", long = "--tty")]
+    #[clap(value_name = "T", short = 't', long = "--tty")]
     session: Option<Option<i32>>,
 
-    /// Show entries not older than the specified date.
-    #[structopt(value_name = "TIME", short = "-s", long)]
+    /// Show only entries since the specified date.
+    #[clap(value_name = "TIME", short = 's', long)]
     since: Option<String>,
 
     /// Show only commands before date.
-    #[structopt(value_name = "TIME", short = "-u", long)]
+    #[clap(value_name = "TIME", short = 'u', long)]
     until: Option<String>,
 
     /// Show only rows with exit status X. Can be 'error' to find all nonzero.
-    #[structopt(value_name = "X", short = "-x", long)]
+    #[clap(value_name = "X", short = 'x', long)]
     status: Option<Option<String>>,
 
     /// Reverse sort order of results.
-    #[structopt(long = "--desc")]
+    #[clap(long = "--desc")]
     desc: bool,
 
     /// Find only entries run in the current dir or below if no DIR, or
     /// find only entries in directory <DIR> or below.
-    #[structopt(value_name = "[DIR]", long = "--in")]
+    #[clap(value_name = "[DIR]", long = "--in")]
     indir: Option<Option<String>>,
 
     /// Like --in, but excluding subdirectories.
-    #[structopt(value_name = "[DIR]", long = "--at")]
+    #[clap(value_name = "[DIR]", long = "--at")]
     at: Option<Option<String>>,
 
     /// Print the host column and show all hosts if no HOSTNAME
     /// or find only entries from host HOSTNAME.
-    #[structopt(value_name = "[HOSTNAME]", long)]
+    #[clap(value_name = "[HOSTNAME]", long)]
     host: Option<Option<String>>,
 
     /// Don't match substrings in <command>.
-    #[structopt(long = "--exact")]
+    #[clap(long = "--exact")]
     exact: bool,
 
     /// Don't print header.
-    #[structopt(long = "--no-header")]
+    #[clap(long = "--no-header")]
     nh: bool,
 
     /// Generate eval string for bash (use eval "$(history --eval <ADDR>)"). Supply server addr,
     /// like 127.0.0.1 if you want to run the server locally, or remote addr/ip if you want to
     /// centralize the history.
-    #[structopt(long = "--eval", name = "SERVER_ADDR")]
+    #[clap(long = "--eval", name = "SERVER_ADDR")]
     eval: Option<String>,
 
     /// Search history for commands containing this fragment.
-    #[structopt()]
+    #[clap()]
     command: Option<String>,
 }
 
 pub async fn query_client_main() -> Result<()> {
-    let options = QueryClientOptions::from_args();
+    let options = QueryClientOptions::parse();
 
     if let Some(server_addr) = options.eval {
         let shell = std::env::var("SHELL")

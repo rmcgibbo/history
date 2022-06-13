@@ -6,25 +6,24 @@ use crate::{
 };
 use anyhow::Result;
 use rusqlite::Connection;
-use structopt::StructOpt;
+use clap::Parser;
 use tokio::sync::Mutex;
 
 use super::register_tracing;
 
-#[derive(StructOpt, Debug)]
-#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
+#[derive(Parser, Debug)]
 pub struct ServerOptions {
     /// Become a daemon
-    #[structopt(long)]
+    #[clap(long)]
     daemonize: bool,
 
     /// History file (sqlite db)
-    #[structopt()]
+    #[clap()]
     history: String,
 }
 
 pub fn server_main() -> Result<()> {
-    let options = ServerOptions::from_args();
+    let options = ServerOptions::parse();
     match options.daemonize {
         true => {
             let stdout = std::fs::OpenOptions::new()
