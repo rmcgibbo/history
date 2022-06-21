@@ -98,6 +98,7 @@ unset -f __history_interactive
 __history_interactive() {
     local output
     local code
+    local saved_tty_settings
     IFS=" " read -d '' -r code output < <(__history_mode=isearch __history_pwd=$(pwd) @history_EXE@ 3>&1 1>&2 2>&3)
 
     # If code="n", then we auto-exec the command as if the user had typed
@@ -109,8 +110,10 @@ __history_interactive() {
         # 4. add it to _our_ history buffer by calling PROMPT_COMMAND
         printf "%s%s\n" "${PS1@P}" "$output"
 
-        stty sane;
+        saved_tty_settings="$(stty -g)"
+        stty sane
         eval "$output"
+        stty "$saved_tty_settings"
         command history -s "$output"
         eval "$PROMPT_COMMAND"
         [[ "$PS1" == "\n"* ]] && printf "\n"
