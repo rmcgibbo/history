@@ -16,7 +16,7 @@ It has a couple of additional features that relative to the one included with `b
       - `Ctrl-r` searches the full multi-host multi-terminal database, but prefers hits from commands you
 	    performed within the current working directory.
       - The search state isn't persistent in the same way as it is with the builtin, so `Ctrl-r` always
-	    start searching from the same place, and after exiting out of `Ctrl-r`, the behavior of the up
+	    starts searching from the same place, and after exiting out of `Ctrl-r`, the behavior of the up
 		and down arrow bindings are not modified.
 
 Usage
